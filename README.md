@@ -40,9 +40,11 @@ PSO 粒子群算法
 	Qi M.Y., Xia M.F., Zhang Y., Miao L.X. Competitive facility location problem with foresight considering 
 	service distance limitations[J]. Computers & Industrial Engineering, 2017; 112:483-491.
 
-	在只有两个竞争设施的情况下，存在一个领导者和一个跟随者，领导者在潜在位点先放置设施，跟随者根据领导者的选址情况选择新的设施点。在领导者知道追随者目标函数的情况下如何设置选址位点是论文研究的重点。
+	在只有两个竞争设施的情况下，存在一个领导者和一个跟随者，领导者在潜在位点先放置设施，跟随者根据领导者的选
+	址情况选择新的设施点。在领导者知道追随者目标函数的情况下如何设置选址位点是论文研究的重点。
 
-	思路：采用了双层禁忌搜索算法，将追随者当前最优解放入领导者可交换的备选位点中，将领导者当前位点与备选位点邻域交换，生成新解进行下一轮求解。
+	思路：采用了双层禁忌搜索算法，将追随者当前最优解放入领导者可交换的备选位点中，将领导者当前位点与备选位点邻
+	域交换，生成新解进行下一轮求解。
 
 	代码：leader_follower.m
 
@@ -50,9 +52,12 @@ PSO 粒子群算法
 
 论文二：
 
-	Fernández P., Pelegrín B., Lančinskas A., Žilinskas J. New heuristic algorithms for discrete competitive location problems with binary and partially binary customer behavior[J]. Computers & Operations Research,2017; 79: 12-18.
+	Fernández P., Pelegrín B., Lančinskas A., Žilinskas J. New heuristic algorithms for discrete competitive 
+	location problems with binary and partially binary customer behavior[J]. Computers & Operations Research,
+	2017; 79: 12-18.
 
-	市场中已经存在两个以上的竞争公司，每个公司都有相应数量的现有设施，现在有一家新的公司要进入市场，如何选择新设施位点使得新进入公司获得的市场份额最大是该论文研究的重点
+	市场中已经存在两个以上的竞争公司，每个公司都有相应数量的现有设施，现在有一家新的公司要进入市场，如何选择新
+	设施位点使得新进入公司获得的市场份额最大是该论文研究的重点
 
 	思路：基于排名的离散优化算法
 	代码：partially_binary.m
