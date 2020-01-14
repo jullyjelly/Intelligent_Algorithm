@@ -1,18 +1,34 @@
-close all;clear all;clc;
+% close all;clear all;clc;
 
-%data
-data=xlsread("mydata.xlsx");%索引，x，y，质量，需求量
+% data
+% data=xlsread("mydata2.xlsx");%索引，x，y，质量，需求量
+% beta=2000;%覆盖半径
+% sigma=180;%质量阈值
+
+data=xlsread("data1.xlsx");
+beta=30;%覆盖半径
+sigma=12;%质量阈值
+
 in=5;%locate中参数个数
 [m,~]=size(data);
+
+upsig=0;
+for i=1:m
+    if data(i,4)>=sigma
+        upsig=upsig+1;
+    end
+end
+disp("大于阈值的位点个数");
+disp(upsig);
+
+
 locate=zeros(m,in);
 locate(:,1:5)=data;
 plot(locate(:,2),locate(:,3),"k.");
 hold on;
-c=2;%公司数
+c=3;%公司数
 n=3;%每家公司设施数
 r=5;%新进入公司设施数
-beta=20;%覆盖半径
-sigma=12;%质量阈值
 
 dij=zeros(m,m);
 for i=1:m
@@ -60,16 +76,18 @@ for i=1:c*n
     end
 end
 
-chromnum=30;
+chromnum=10;
 bestall=0;
 
-chrompop=zeros(chromnum,r+1);%r个点的索引以及新公司或的的市场份额
+np=flipud(sortrows(potentialLocate,4));
+np=np(1:min(chromnum*r,m-c*n),:);
+chrompop=zeros(chromnum,r+1);%r个点的索引以及新公司获得的市场份额
 for chrom=1:chromnum
     %生成竞争者初始解
-    newLocateIndex=randperm(m-c*n,r);
+    newLocateIndex=randperm(min(chromnum*r,m-c*n),r);
     newLocate=zeros(r,in);
     for i=1:r
-        newLocate(i,:)=potentialLocate(newLocateIndex(i),:);
+        newLocate(i,:)=np(newLocateIndex(i),:);
         chrompop(chrom,i)=newLocate(i,1);
     end
     %计算市场份额
@@ -89,6 +107,16 @@ for i=1:2:chromnum
         f2=chrompop(i+1,:);
         [f1,f2]=interset(f1,f2,r);
         newchrom=[newchrom;f1;f2];
+        %检验交叉后是否有重复项
+%         for h=1:r-1
+%             for l=h+1:r
+%                 if newchrom(i,h)==newchrom(i,l) || newchrom(i+1,h)==newchrom(i+1,l)
+%                     disp("false");
+%                 end
+%             end
+%         end
+%         %
+
     end
 end
 
@@ -137,7 +165,7 @@ chrompop=[chrompop;newchrom];
 [cs,~]=size(chrompop);
 bestm=0;
 for i=1:cs
-    for time=1:60
+    for time=1:200 
         f=chrompop(i,:);
         candiLocate=potentialLocate;
         for j=1:r
@@ -175,11 +203,11 @@ end
 newchrompop=[];
 mpop=chrompop(:,6);
 allm=cumsum(mpop);
-fit=allm./allm(chromnum,1);
+fit=allm./allm(cs,1);
 fit=[0;fit];
 for i=1:chromnum
     lunpan=rand;
-    for j=1:chromnum
+    for j=1:cs
         if lunpan>fit(j,1) && lunpan<=fit(j+1,1)
             newchrompop=[newchrompop;chrompop(j,:)];
         end
@@ -188,7 +216,10 @@ end
 chrompop=newchrompop;
 
 end
-disp(bestindex);
+
+bestindex(1,1:5)=sort(bestindex(1,1:5));
+disp(bestindex(1,1)+"，"+bestindex(1,2)+"，"+bestindex(1,3)+ ...
+    "，"+bestindex(1,4)+"，"+bestindex(1,5)+"  "+bestindex(1,6));
 bestl=zeros(r,in);
 for j=1:r
     x=find(locate(:,1)==bestindex(1,j));
@@ -199,9 +230,43 @@ for j=1:r
     plot(x1,y1,'b-');   
 end
 
+count=0;
+for i=1:r
+    if bestl(i,4)>=sigma
+        count=count+1;
+    end
+end
+disp("放置设施在大于阈值的设施数：");
+disp(count);
 plot(bestl(:,2),bestl(:,3),"g^");
 axis equal;
 
+
+
+
+
+
+
+% %test
+% change=nchoosek(c*n+1:m,5);
+% [csize,~]=size(change);
+% well=0;
+% for k=1:csize
+%     test=change(k,:);
+% %     test=[10,19,25,29,42];
+%     newLocate=[];
+%     for i=1:r
+%         x=find(locate(:,1)==test(1,i));
+%         newLocate=[ newLocate;locate(x,:)];
+%     end
+%     Mp=getMarket(m,r,newLocate,existattract,locate,aij);
+%     if Mp>well
+%         well=Mp;
+%         wi=test;
+%     end
+% end
+% disp(well);
+% disp(wi);
 
 
 function Mp=getMarket(m,r,newLocate,existattract,locate,aij)
@@ -248,7 +313,7 @@ function [f1,f2]=interset(f1,f2,r)
         a=f11(1,r1:r2);
         b=f2(1,r1:r2);
         y=find(f2==a(1,j));
-        if ~isempty(y)
+        if ~isempty(y) 
             f2(1,y)=b(1,j);
         end
     end
