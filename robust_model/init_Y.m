@@ -1,15 +1,32 @@
-function Y=init_Y(m,num_E,num_N,n_qlevel,G,cost_jk,quality_index,rjk)
+function [oz_Y,Y]=init_Y(m,num_E,n_qlevel,G,cost_jk)
 %初始化新设施所在位点以及质量水平
-% sort_rjk=sortrows(rjk,4);
-% for i=1:num_N
-%     Y(i,:)=[sort_rjk(i,4),sort_rjk(i,2),sort_rjk(i,3)];
-% end%遇到预算非常小的时候，初始候选解无法正常生成
-index_l_N=sort(randperm(m-num_E,num_N));%新设施位点索引
-index_q_N=randsrc(1,num_N,(1:n_qlevel));
-Y=zeros(num_N,3);
-for i=1:num_N
-    %选择哪个设施的哪个质量，设施索引，质量索引
-    Y(i,:)=[cost_jk(index_l_N(i),index_q_N(i)),cost_jk(index_l_N(i),n_qlevel+1),index_q_N(i)];
+avg=mean(mean(cost_jk(:,1:5)));
+avg_num_N=ceil(G/avg);
+
+index_l_N=sort(randperm(m-num_E,avg_num_N));%新设施位点索引
+index_q_N=randsrc(1,avg_num_N,(1:n_qlevel));
+oz_Y=zeros((m-num_E)*n_qlevel,4);
+for i=1:avg_num_N
+    oz_Y((index_l_N(i)-1)*n_qlevel+index_q_N(i),1)=1;
+    oz_Y((index_l_N(i)-1)*n_qlevel+index_q_N(i),3)=cost_jk(index_l_N(i),n_qlevel+1);
+    oz_Y((index_l_N(i)-1)*n_qlevel+index_q_N(i),4)=index_q_N(i);
+    oz_Y((index_l_N(i)-1)*n_qlevel+index_q_N(i),2)=cost_jk(index_l_N(i),index_q_N(i));
 end
-Y=budget_limit(G,num_N,cost_jk,n_qlevel,quality_index,Y);
+
+for i=1:(m-num_E)
+    for j=1:n_qlevel
+        oz_Y((i-1)*n_qlevel+j,3)=cost_jk(i,n_qlevel+1);
+        oz_Y((i-1)*n_qlevel+j,4)=j;
+    end
+end
+x=find(oz_Y(:,2)~=0);
+Y=oz_Y(x,2:4);
+
+while sum(oz_Y(:,2))>G
+    [s,~]=size(Y);
+    cross_index=randsrc(1,1,(1:s));
+    [~,x,~]=intersect(oz_Y(:,3:4),Y(cross_index,2:3),"rows");
+    oz_Y(x,1)=0;oz_Y(x,2)=0;
+    Y(cross_index,:)=[];
+end
 end
